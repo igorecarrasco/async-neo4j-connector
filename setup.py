@@ -7,14 +7,14 @@ with open('requirements.txt') as requirements_file:
     install_requires = requirements_file.read()
 
 setup(
-    name='neo4j-connector',
-    version='1.1.0',
+    name='async-neo4j-connector',
+    version='1.0.0',
     description='Connector with single-request transactions for Neo4j 3.0 and above',
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    author='Jelle Jan Bankert (Textkernel BV)',
-    author_email='bankert@textkernel.com',
-    url='https://github.com/textkernel/neo4j-connector',
+    author='Igor Elias Carrasco (Forbes Media LLC)',
+    author_email='icarrasco@forbes.com',
+    url='https://github.com/igorecarrasco/async-neo4j-connector',
     license='MIT',
     packages=['neo4j'],
     install_requires=install_requires,

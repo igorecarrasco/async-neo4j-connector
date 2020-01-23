@@ -19,14 +19,14 @@ sys.path.append(os.path.join(os.path.dirname(__name__), '..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'neo4j-connector'
-copyright = '2019, Jelle Jan Bankert (Textkernel B.V.)'
-author = 'Jelle Jan Bankert (Textkernel B.V.)'
+project = 'async-neo4j-connector'
+copyright = '2020, Igor Elias Carrasco (Forbes Media LLC) - Package neo4j-connector (c) 2019, Jelle Jan Bankert (Textkernel B.V.)'
+author = '2020, Igor Elias Carrasco (Forbes Media LLC) - Package neo4j-connector (c) 2019, Jelle Jan Bankert (Textkernel B.V.)'
 
 # The short X.Y version
-version = '1.1'
+version = '1.0'
 # The full version, including alpha/beta/rc tags
-release = '1.1.0'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -129,8 +129,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'neo4j-connector.tex', 'neo4j-connector Documentation',
-     'Jelle Jan Bankert', 'manual'),
+    (master_doc, 'async-neo4j-connector.tex', 'async-neo4j-connector Documentation',
+     'Igor Elias Carrasco', 'manual'),
 ]
 
 # -- Options for manual page output ------------------------------------------
@@ -138,7 +138,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'neo4j-connector', 'neo4j-connector Documentation',
+    (master_doc, 'async-neo4j-connector', 'async-neo4j-connector Documentation',
      [author], 1)
 ]
 
@@ -148,8 +148,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'neo4j-connector', 'neo4j-connector Documentation',
-     author, 'neo4j-connector', 'One line description of project.',
+    (master_doc, 'async-neo4j-connector', 'async-neo4j-connector Documentation',
+     author, 'async-neo4j-connector', 'One line description of project.',
      'Miscellaneous'),
 ]
 

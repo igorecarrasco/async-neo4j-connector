@@ -2,11 +2,12 @@
 This module implements access to the `Neo4j HTTP API <https://neo4j.com/docs/http-api/3.5/>`_ using the requests
 library.
 """
-
-import requests
+import asyncio
 import sys
-from typing import List, Tuple
 from collections import namedtuple
+from typing import AsyncGenerator, Dict, List, Tuple, Union
+
+from httpx import AsyncClient, Response
 
 
 class Statement(dict):
@@ -38,7 +39,7 @@ class Statement(dict):
     def __init__(self, cypher: str, parameters: dict = None):
         super().__init__(statement=cypher)
         if parameters:
-            self['parameters'] = parameters
+            self["parameters"] = parameters
 
 
 class Connector:
@@ -65,19 +66,24 @@ class Connector:
     """
 
     # default endpoint of localhost
-    default_host = 'http://localhost:7474'
-    default_path = '/db/data/transaction/commit'
+    default_host = "http://localhost:7474"
+    default_path = "/db/data/transaction/commit"
 
     # default credentials
-    default_credentials = ('neo4j', 'neo4j')
+    default_credentials = ("neo4j", "neo4j")
 
-    def __init__(self, host: str = default_host, credentials: Tuple[str, str] = default_credentials,
-                 verbose_errors=False):
+    def __init__(
+        self,
+        host: str = default_host,
+        credentials: Tuple[str, str] = default_credentials,
+        verbose_errors=False,
+    ):
+        self.session: AsyncClient = AsyncClient()
         self.endpoint = host + self.default_path
         self.credentials = credentials
         self.verbose_errors = verbose_errors
 
-    def run(self, cypher: str, parameters: dict = None):
+    async def run(self, cypher: str, parameters: dict = None):
         """
         Method that runs a single statement against Neo4j in a single transaction. This method builds the
         :class:`Statement` object for the user.
@@ -106,10 +112,12 @@ class Connector:
         >>> # in this case we're assuming: CONSTRAINT ON (node:node) ASSERT node.uuid IS UNIQUE
         >>> single_node_properties_by_uuid = connector.run("MATCH (n:node {uuid: {uuid}}) RETURN n", {'uuid': '123abc'})[0]['n']
         """
-        response = self.post([Statement(cypher, parameters)])
+        response = await self.post([Statement(cypher, parameters)])
         return self._clean_results(response)[0]
 
-    def run_multiple(self, statements: List[Statement], batch_size: int = None) -> List[List[dict]]:
+    async def run_multiple(
+        self, statements: List[Statement], batch_size: int = None
+    ) -> List[List[dict]]:
         """
         Method that runs multiple :class:`Statement`\ s against Neo4j in a single transaction or several batches.
 
@@ -156,11 +164,11 @@ class Connector:
         # flatten cleaned responses from batches
         return [
             row
-            for statements_batch in self.make_batches(statements, batch_size)
-            for row in self._clean_results(self.post(statements_batch))
+            async for statements_batch in self.make_batches(statements, batch_size)
+            for row in self._clean_results(await self.post(statements_batch))
         ]
 
-    def post(self, statements: List[Statement]):
+    async def post(self, statements: List[Statement]):
         """
         Method that performs an HTTP POST with the provided :class:`Statement`\ s and returns the parsed data structure
         as `specified in Neo4j's documentation
@@ -186,17 +194,24 @@ class Connector:
         >>>     for datum in result['data']:
         >>>         print(datum['row'][0]) #n is the first item in the row
         """
-        response = requests.post(self.endpoint, json={'statements': statements}, auth=self.credentials)
-        json_response = response.json()
+        async with self.session as s:
+            response: Response = await s.post(
+                self.endpoint, json={"statements": statements}, auth=self.credentials
+            )
+
+        json_response: Union[Dict, List] = response.json()
 
         self._check_for_errors(json_response)
 
         return json_response
 
     @staticmethod
-    def make_batches(statements: List[Statement], batch_size: int = None) -> List:
+    async def make_batches(
+        statements: List[Statement], batch_size: int = None
+    ) -> AsyncGenerator:
         # only 1 batch
         if batch_size is None:
+            await asyncio.sleep(0.001)
             yield statements
 
         # multiple batches
@@ -205,10 +220,11 @@ class Connector:
                 raise ValueError("batchsize should be >= 1")
 
             for start_idx in range(0, len(statements), batch_size):
-                yield statements[start_idx:start_idx + batch_size]
+                await asyncio.sleep(0.001)
+                yield statements[start_idx : start_idx + batch_size]
 
     def _check_for_errors(self, json_response):
-        errors = json_response.get('errors')
+        errors = json_response.get("errors")
         if errors:
             neo4j_errors = Neo4jErrors(errors)
             if self.verbose_errors:
@@ -220,11 +236,8 @@ class Connector:
     @staticmethod
     def _clean_results(response):
         return [
-            [
-                dict(zip(result['columns'], datum['row']))
-                for datum in result['data']
-            ]
-            for result in response['results']
+            [dict(zip(result["columns"], datum["row"])) for datum in result["data"]]
+            for result in response["results"]
         ]
 
 
@@ -246,14 +259,14 @@ class Neo4jErrors(Exception):
     """
 
     def __init__(self, errors: List[dict]):
-        self.errors = [Neo4jError(error['code'], error['message']) for error in errors]
+        self.errors = [Neo4jError(error["code"], error["message"]) for error in errors]
 
     def __iter__(self):
         return iter(self.errors)
 
 
 # wrapped the namedtuple in a class so it gets documented properly
-class Neo4jError(namedtuple('Neo4jError', ['code', 'message'])):
+class Neo4jError(namedtuple("Neo4jError", ["code", "message"])):
     """namedtuple that contains the code and message of a Neo4j error
 
     Args:
