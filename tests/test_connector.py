@@ -1,5 +1,6 @@
 import neo4j
 import pytest
+import asyncio
 
 
 class TestConnectorBasics:
@@ -50,7 +51,7 @@ class TestPostingStatements:
         self.connector = neo4j.Connector("http://0.0.0.0:7474", ("neo4j", "test1234"))
 
     def teardown(self):
-        self.connector.run("MATCH (n) DELETE n")
+        asyncio.run(self.connector.run("MATCH (n) DELETE n"))
 
     @pytest.mark.asyncio
     async def test_run_single(self):
