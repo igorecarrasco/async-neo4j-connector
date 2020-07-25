@@ -48,22 +48,20 @@ class TestPostingStatements:
     cypher2 = "MERGE (b:Bar) RETURN b"
 
     def setup(self):
-        self.connector = neo4j.Connector("http://0.0.0.0:7474", ("neo4j", "test1234"))
+        self.connector = neo4j.Connector()
 
     def teardown(self):
-        asyncio.run(self.connector.run("MATCH (n) DELETE n"))
+        self.connector.run("MATCH (n) DELETE n")
 
-    @pytest.mark.asyncio
-    async def test_run_single(self):
-        response = await self.connector.run(self.cypher1)
+    def test_run_single(self):
+        response = self.connector.run(self.cypher1)
         row = response[0]
 
         assert "a" in row.keys()
 
-    @pytest.mark.asyncio
-    async def test_run_multiple(self):
+    def test_run_multiple(self):
         statements = [neo4j.Statement(self.cypher1), neo4j.Statement(self.cypher2)]
-        response = await self.connector.run_multiple(statements)
+        response = self.connector.run_multiple(statements)
 
         statement_1_first_row = response[0][0]
         assert "a" in statement_1_first_row.keys()
@@ -71,10 +69,9 @@ class TestPostingStatements:
         statement_2_first_row = response[1][0]
         assert "b" in statement_2_first_row.keys()
 
-    @pytest.mark.asyncio
-    async def test_run_multiple_batch(self):
+    def test_run_multiple_batch(self):
         statements = [neo4j.Statement(self.cypher1), neo4j.Statement(self.cypher2)]
-        response = await self.connector.run_multiple(statements, batch_size=1)
+        response = self.connector.run_multiple(statements, batch_size=1)
 
         statement_1_first_row = response[0][0]
         assert "a" in statement_1_first_row.keys()
