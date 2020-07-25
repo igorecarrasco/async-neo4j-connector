@@ -2,13 +2,8 @@
 README
 ******
 
-This library contains everything you need to asynchronously execute single-request transactions for Neo4j 3.0 and above through its
+This library contains everything you need to execute single-request transactions for Neo4j 3.0 and above through its
 HTTP API.
-
-Acknowledgements
-================
-
-This _particular_ library builds on the awesome original neo4j-connector, https://github.com/textkernel/neo4j-connector. I had a use case that needed async requesting.
 
 Background
 ==========
@@ -25,10 +20,10 @@ Example
 
 .. code-block:: python
 
-    import asyncneo4j
+    import neo4j
 
     connector = neo4j.Connector('http://localhost:7474', ('neo4j','neo4j'))
-    response = await connector.run("""MATCH () RETURN COUNT(*) as node_count""")
+    response = connector.run("""MATCH () RETURN COUNT(*) as node_count""")
     first_row = response[0]
     print(first_row['node_count'])
 
@@ -39,11 +34,15 @@ To install the latest stable version, use:
 
 .. code:: bash
 
-    pip install # # # # # neo4j-connector
+    pip install neo4j-connector
 
 Github
 ======
 
-This library lives at https://github.com/igorecarrasco/async-neo4j-connector. Suggestions, bug-reports and pull requests are
+This library lives at https://github.com/textkernel/neo4j-connector. Suggestions, bug-reports and pull requests are
 welcome there.
 
+Documentation
+=============
+
+The documentation (including changelog) lives at https://neo4j-connector.readthedocs.io
